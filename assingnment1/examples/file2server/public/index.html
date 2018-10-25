@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+
+<body>
+<img id="image" , src="">
+<input type='file' accept='file/*' onchange='openFile(event)'><br>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+var socket = io.connect("http://localhost:5000");
+socket.on("everythingCompleted", function(data) {
+alert("your file has been uploaded !!");
+});
+var text;
+var openFile = function (event) {
+var input = event.target;
+var reader = new FileReader();
+ 
+reader.onload = function () {
+text = reader.result;
+//console.log('rrrrr',reader);
+console.log('textttttttt', text);
+text = text.split("data:image/jpeg;base64,")[1]; 
+
+chunksCreation(text);
+};
+
+reader.readAsDataURL(input.files[0]);
+
+
+};
+function chunksCreation(data) {
+var total_chunks = Math.ceil(data.length / 5000);
+var start = 0, end = 0;
+for (var i = 0; i < data.length; i += 5000) {
+start = i, end = start + 5000;
+if (end > data.length) {
+end = data.length;
+}
+//console.log(start, " ", end);
+socket.emit("chunkSending", data.substring(start, end));
+}
+socket.emit("chunksendingComplete","jpg");
+}
+
+</script>
+</body>
+
+</html>
